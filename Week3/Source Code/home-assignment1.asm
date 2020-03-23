@@ -1,4 +1,9 @@
 #Laboratory Exercise 3, Home Assignment 1
+
+.text 
+	addi $s1, $zero, 2 # i = 2
+	addi $s2, $zero, 1 # j = 1
+
 start:
 	slt $t0, $s2, $s1         # j < i
 	bne $t0, $zero, else 	  # branch to else if j<i
