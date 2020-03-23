@@ -13,10 +13,8 @@
 ################# b. i >= j #################
 
 start:
-	beq $s1, $s2, continue
-	slt $t0, $s2, $s1         # j < i
-	beq $t0, $zero, else 	  # branch to else if j > i
-continue:
+	slt $t0, $s1, $s2         # i < j => True: return 1; False: return 0
+	bne $t0, $zero, else 	  # branch to else if i < j
 	addi $t1, $t1, 1	  # then part: x=x+1
 	addi $t3, $zero, 1        # z=1
 	j endif   		  # skip “else” part
