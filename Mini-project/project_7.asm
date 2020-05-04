@@ -173,7 +173,7 @@ i_loop:
 
 i_continue:
 	addi 	$t0, $t0, 1		# i = i + 1
-	slt  	$t4, $t0, $s1		# if i < n => return: 1; else return: 0
+	slt  	$t4, $t0, $s1		# if i < n: True return: 1; False return: 0
 	bne  	$t4, $zero, i_loop 
 
 i_end_loop:
