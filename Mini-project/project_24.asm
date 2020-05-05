@@ -7,8 +7,8 @@
 
 .data
 	c_word: .asciiz "ab"
-	true: .asciiz "true"
-	false: .asciiz "false"
+	true: .asciiz "True"
+	false: .asciiz "False"
 .text
 
 main:
@@ -44,19 +44,9 @@ cyclone_word:
 	beq $a1, $zero, return_true
 	addi $t0, $zero, 1
 	beq $a1, $t0, return_true
-	
-	# If length of word = 2 and c_word[0] > c_word[1] => FALSE (Alphabet)
-	addi $t0, $zero, 2
-	bne $a1, $t0, continue
-	lb $t1, 0($a0)
-	lb $t2, 1($a0)
-	slt $t3, $t1, $t2 	# if c_word[0] > c_word[1] false => 0
-	beq $t3, $zero, return_false # if return = 0 
-	j return_true
-continue:
+
 	addi $t0, $zero, 0	# i: 0
 	sub $t1, $a1, 1		# j: n - 1
-
 loop:
 	slt $t2, $t0, $t1	# if i >= j => return 0
 	beq $t2, $zero, return_true
@@ -79,7 +69,6 @@ loop:
 	j	loop
 end_loop:
 	
-
 return_true:
 	addi $v0, $zero, 1
 	jr 	$ra
