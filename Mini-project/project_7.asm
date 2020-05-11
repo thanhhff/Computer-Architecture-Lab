@@ -22,7 +22,7 @@
 
 .data
 	# Input array 
-	# @note: Chu y so luong phan tu n cua mang trong $s1
+	# @note: Chu y so luong phan tu `n` cua mang trong $s1
 	
 	array: .word -1, 150, 190, 170, -1, -1, 160, 180
 	## array: .word 1, -1, -1, -1, -1
