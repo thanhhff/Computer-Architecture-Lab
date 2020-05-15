@@ -17,18 +17,18 @@
 #-----------------------------------------------------------
 
 .data
-	students: .space 5200 			# Array to store blocks (52) of 100 student
-	input_name: .asciiz "Nhap ten sinh vien"
-	input_mark: .asciiz "Nhap diem sinh vien"
-	note: .asciiz "diem duoc nhap phai thoa man dieu kien: 0 <= diem <=10"
-	input_count: .asciiz "Nhap so luong sinh vien"
-	error: .asciiz "Gia tri nhap vao khong dung kieu!"
-	st_list: .asciiz "Danh sach sinh vien"
-	mark_and_name: .asciiz "\nDiem\tHo va Ten\n"
-	sorted_list: .asciiz "\nDanh sach da sap xep:\n"
-	so_sinh_vien: .word
-	ten: .float 10.0
-	zero: .float 0.0
+	students: 	.space 	5200 # Array to store blocks (52) of 100 student
+	input_name: 	.asciiz "Nhap ten sinh vien"
+	input_mark: 	.asciiz "Nhap diem sinh vien"
+	note: 		.asciiz "diem duoc nhap phai thoa man dieu kien: 0 <= diem <=10"
+	input_count: 	.asciiz "Nhap so luong sinh vien"
+	error: 		.asciiz "Gia tri nhap vao khong dung kieu!"
+	st_list: 	.asciiz "Danh sach sinh vien"
+	mark_and_name: 	.asciiz "\nDiem\tHo va Ten\n"
+	sorted_list: 	.asciiz "\nDanh sach da sap xep:\n"
+	so_sinh_vien: 	.word
+	ten: 		.float 	10.0
+	zero: 		.float 	0.0
 #-----------------------------------------------------------
 #__read_info_student: nao dia chi cua mang.
 #count: nhap so luong sinh vien.
@@ -72,14 +72,14 @@ end_error_input:
 	la 	$a0, mark_and_name 		# in ra chuoi "Diem Ho va Ten"
 	syscall
 
-	li 	$t0, 0 				# khoi tao $t0 = 0, $t0 là bien dem cua sinh vien vua duoc nhap thong tin
+	li 	$t0, 0 				# khoi tao $t0 = 0, $t0 la bien dem cua sinh vien vua duoc nhap thong tin
 loop:
-	slt 	$v0, $t0, $s0 			# So sanh $t0 (So sinh vien nhap thong tin) và $s0 (Tong so sinh vien)
+	slt 	$v0, $t0, $s0 			# So sanh $t0 (So sinh vien nhap thong tin) va $s0 (Tong so sinh vien)
 	beqz 	$v0, end_loop 			# Thoat vong lap khi nhap du thong tin cho cac sinh vien
 name: 
 	li 	$v0, 54 			# Goi hop thoai nhap ten sinh vien
 	la 	$a0, input_name 		# Tieu de "Nhap ten sinh vien"
-	la 	$a1, 4($t1) 			# Chi ra vi trí luu ten
+	la 	$a1, 4($t1) 			# Chi ra vi tri luu ten
 	li 	$a2, 46 			# Gioi han do dai ten 46 ki tu
 	syscall 
 
@@ -107,9 +107,9 @@ condi:
 	j 	do	
 
 exit_do:
-	s.s 	$f0, ($t1) 			# Luu diem vào mang
+	s.s 	$f0, ($t1) 			# Luu diem vao mang
 	li 	$v0, 2 
-	mov.s 	$f12, $f0 			# In diem ra màn hinh console
+	mov.s 	$f12, $f0 			# In diem ra man hinh console
 	syscall 
 	li 	$v0, 11 
 	li 	$a0, '\t' 			# In dau tab
@@ -131,8 +131,8 @@ end_loop:
 #@output: danh sach sinh vien - da duoc sap xep theo thu tu tang dan cua diem so
 #-----------------------------------------------------------
 __bubble_sort:
-	la 	$s0, students 			#load dia chi mang a vào $s0
-	la 	$s3, students 			#load dia chi mang a vào $s3
+	la 	$s0, students 			#load dia chi mang a vao $s0
+	la 	$s3, students 			#load dia chi mang a vao $s3
 	addi 	$t2, $t0, 0 			#i = n
 loop1: # for i = n-1 to 0
 	addi 	$t2, $t2, -1 			# i = i - 1
@@ -141,7 +141,7 @@ loop1: # for i = n-1 to 0
 	beq 	$t2, 0, break_1 		# so sanh i voi 0 neu bang nhau thi re nhanh xuong nhan break
 loop2: #for j = 0 to i - 1
 	beq 	$t2, $t3, loop1 		# if j == i then loop1
-	l.s 	$f1, 0($s0) 			# Load a[j] luu vào $s1
+	l.s 	$f1, 0($s0) 			# Load a[j] luu vao $s1
 	addi 	$s0, $s0, 52 			# tang dia chi len 52
 	l.s 	$f2, 0($s0) 			# Load a[j+1]
 	#slt $a0, $s2, $s1 # if a[j+1] < a[j] then
@@ -172,18 +172,19 @@ loopx:
 	j 	loopx
 end_loopx:
 	jr 	$ra
+	
 #in ra danh sach sinh vien da duoc sap xep
 __show_student:
 	add 	$s0, $s7, $zero
-	la 	$t1, students 			# Nap dia chi ðau mang cac block luu thong tin sinh vien
+	la 	$t1, students 			# Nap dia chi dau mang cac block luu thong tin sinh vien
 	li 	$v0, 4 				# Goi ham in string
 	la 	$a0, sorted_list 
 	syscall 
 	la 	$a0, mark_and_name 		# in ra chuoi "Diem Ho va Ten"
 	syscall
-	li 	$t0, 0 				# Khoi tao $t0 = 0, $t0 là bien diem so sinh vien da duoc duyet
+	li 	$t0, 0 				# Khoi tao $t0 = 0, $t0 la bien diem so sinh vien da duoc duyet
 loop3:
-	slt 	$v0, $t0, $s6 			# So sanh $t0 (So sv da duyet) và $s0 (Tong so sinh vien)
+	slt 	$v0, $t0, $s6 			# So sanh $t0 (So sv da duyet) va $s0 (Tong so sinh vien)
 	beqz 	$v0, exit 			# Thoat vong lap khi duyet het sinh vien
 	li 	$v0, 2 
 
