@@ -19,16 +19,20 @@
 
 .data
 	# Chu y so luong phan tu cua tu
-	input_word: .asciiz "superb"
+	# input_word: .asciiz "superb"
+	input_word: .asciiz "excellent"
+	
 	true: .asciiz "True"
 	false: .asciiz "False"
 	gap_length: .word
 
 .text
 main:
-	addi $a0, $zero, 6	# n: So cac ki tu cua input_word
-	la $a1, input_word
-	la $a2, gap_length
+	# addi $a0, $zero, 6	# n: So cac ki tu cua input_word
+	addi $a0, $zero, 9	# n: So cac ki tu cua input_word
+	
+	la $a1, input_word	# vi tri cua input_word
+	la $a2, gap_length	# vi tri cua gap_length
 
 	
 	jal check
