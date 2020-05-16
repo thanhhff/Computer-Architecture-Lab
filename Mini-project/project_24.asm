@@ -1,5 +1,3 @@
-
-
 #----------------------------------------------------------
 # Team 4: Nguyen Trung Thanh - Hoang Thi Thu Trang
 # Project 24: Cyclone Word (Challenge)
