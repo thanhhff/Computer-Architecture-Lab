@@ -15,10 +15,9 @@
 # @input: mot so nguyen duong
 # digit_degree ban dau bang 0
 # @idea: 
-#	1. Check: Neu so < 10: return digit_degree
+#	1. Check: Neu so < 10: return digit_degree; Neu so > 10: digit_degree += 1 va tiep tuc buoc 2.
 #	2. Su dung vong lap de tach cac chu so bang cach chia dan cho 10 va luu vao mang number.
-#	3. Count: tinh tong cac chu so, neu tong > 10: digit_degree cong them 1
-#	   quay lai `check` de kiem tra	
+#	3. Count: tinh tong cac chu so va quay lai check
 #-----------------------------------------------------------
 
 
@@ -74,7 +73,7 @@ digit_degree:
 	add $s1, $zero, $a1		# $s1 gia tri dau vao cua chuong trinh
 
 #-----------------------------------------------------------
-# 1. Check: Neu so < 10: return digit_degree
+# 1. Check: Neu so < 10: return digit_degree; Neu so > 10: digit_degree += 1 va tiep tuc buoc 2.
 #-----------------------------------------------------------
 
 check:	
@@ -103,8 +102,7 @@ loop:
 end_loop:
 
 #-----------------------------------------------------------
-# 3. Count: tinh tong cac chu so, neu tong > 10: digit_degree cong them 1
-#	    quay lai `check` de kiem tra	
+# 3. Count: tinh tong cac chu so va quay lai check	
 #-----------------------------------------------------------
 
 	addi $s2, $zero, 0		# tong cua cac chu so
