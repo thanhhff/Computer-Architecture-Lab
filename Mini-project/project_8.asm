@@ -1,6 +1,6 @@
 #----------------------------------------------------------
 # Team 4: Nguyen Trung Thanh - Hoang Thi Thu Trang
-# Project ?8: students
+# Project 8: Students
 #
 #- Input the number of students in class.        
 #- Input the name of students in class, mark.        
