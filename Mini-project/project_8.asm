@@ -41,7 +41,7 @@ __read_info_student:
 	move 	$t1, $s1 			# Gan dia chi cua mang vao $t1
 	la 	$s4, ten			# $s4 = 10.0
 	la 	$s5, zero			# $s5 = 0.0
-	li	$t2,100				# $t2 = 100
+	li	$t2, 100			# $t2 = 100
 
 count:
 	li 	$v0, 51 			# Goi hop thoai nhap so luong sinh vien
