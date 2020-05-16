@@ -23,7 +23,9 @@
 
 .data
 	# Chu y so luong ki tu cua tu
-	c_word: .asciiz "adjourned"		# input dau vao
+	# c_word: .asciiz "adjourned"		# input dau vao
+	c_word: .asciiz "settled"
+	
 	true: .asciiz "True"
 	false: .asciiz "False"
 .text
@@ -32,7 +34,8 @@ main:
 	la $a0, c_word
 	
 	# So ki tu cua tu
-	addi $a1, $zero, 9
+	# addi $a1, $zero, 9
+	addi $a1, $zero, 7
 	
 	jal cyclone_word
 	nop 
