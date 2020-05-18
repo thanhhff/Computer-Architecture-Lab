@@ -7,7 +7,6 @@
 #- Sort students due to their mark. 
 #-----------------------------------------------------------
 
-
 #-----------------------------------------------------------
 #@idea:
 # - Nhap so luong sinh vien.
@@ -22,8 +21,9 @@
 	input_mark: .asciiz "Nhap diem sinh vien"
 	note: .asciiz "Diem duoc nhap phai thoa man: 0 <= diem <=10"
 	input_count: .asciiz "Nhap so luong sinh vien"
-	error_count: .asciiz "So sinh vien phai la so tu nhien nho hon 100"
+	error_count: .asciiz "So sinh vien phai la so tu nhien nho hon hoac bang 100"
 	error: .asciiz "Gia tri nhap vao khong dung kieu!"
+	error_in: .asciiz "Ten ban da nhap qua dai hoac khong nhap gi! Toi da 47 ki tu"
 	st_list: .asciiz "Danh sach sinh vien"
 	mark_and_name: .asciiz "\nDiem\tHo va Ten\n"
 	sorted_list: .asciiz "\nDanh sach da sap xep:\n"
@@ -32,22 +32,18 @@
 	zero: .float 0.0
 
 .text
-
-
 #Doc thong tin sinh vien
-
 __read_info_student:
 	la 	$s1, students 			# Nap dia chi cua mang $s1
 	move 	$t1, $s1 			# Gan dia chi cua mang vao $t1
 	la 	$s4, ten			# $s4 = 10.0
 	la 	$s5, zero			# $s5 = 0.0
-	li	$t2, 100			# $t2 = 100
+	li	$t2, 101			# $t2 = 101
 
 count:
 	li 	$v0, 51 			# Goi hop thoai nhap so luong sinh vien
 	la 	$a0, input_count 		# $a0 tieu de: "Nhap so luong sinh vien"
 	syscall 				# $a0 so sinh vien
-	
 	
 	addi $t0, $zero, -1
 	beq $t0, $a1, error_input
@@ -70,7 +66,6 @@ error_input:
 	la $a0, error
 	syscall 
 	j 	count
-	
 #Thoat khoi ham nhap so sinh vien
 end_error_input:	
 	move 	$s0, $a0 			# ao = so sinh vien
@@ -85,12 +80,10 @@ end_error_input:
 	syscall
 
 	li 	$t0, 0 				# khoi tao $t0 = 0, $t0 la bien dem (i) cua sinh vien vua duoc nhap thong tin
-
-### Vong lap nhap thong tin sinh vien
 loop:
 	slt 	$v0, $t0, $s0 			# So sanh $t0 (So sinh vien nhap thong tin) < $s0 (Tong so sinh vien)-> v0 = 1 
 	beqz 	$v0, end_loop 			# Thoat vong lap khi nhap du thong tin cho cac sinh vien
-
+	
 ### Nhap ten sinh vien
 name: 
 	li 	$v0, 54 			# Goi hop thoai nhap ten sinh vien
@@ -114,6 +107,9 @@ do:	li 	$v0, 52 			# Goi hop thoai nhap diem (Kieu float)
 	la 	$a0, input_mark 		# Tieu de "Nhap diem sinh vien"
 	syscall 
 	
+	
+	bnez  $a1, error_inpu
+	
 	l.s 	$f1,($s4)			# Doc gia tri cua s4 (= 10.0) vao thanh ghi f1
 	c.le.s 	$f0, $f1			# f0 <= f1
 	li 	$a0, 1		 
@@ -125,6 +121,11 @@ do:	li 	$v0, 52 			# Goi hop thoai nhap diem (Kieu float)
 	li 	$a0, 1		 
 	movt 	$a0, $zero
 	beq 	$a0, $zero, exit_do		# Neu a0 != 0 --> incre
+error_inpu:
+	la $v0, 55
+	la $a0, error
+	syscall 
+	j 	do
 condi:	
 	
 	la $v0, 55
@@ -150,12 +151,11 @@ end_loop:
 
 #-----------------------------------------------------------
 # Bat dau sap xep #
-#-----------------------------------------------------------
-#-----------------------------------------------------------
 #@case_study: Sap xep bang phuong phap bubble sort
 #@input: danh sach sinh vien - chua duoc sap xep theo diem
 #@output: danh sach sinh vien - da duoc sap xep theo thu tu tang dan cua diem so
 #-----------------------------------------------------------
+
 __bubble_sort:
 	la 	$s3, students 			#load dia chi mang a vao $s3
 	addi 	$t2, $t0, 0 			#i = n
@@ -169,26 +169,25 @@ loop2: #for j = 0 to i - 1
 	l.s 	$f1, 0($s0) 			# Load a[j] luu vao $f1
 	addi 	$s0, $s0, 52 			# tang dia chi len 52 --> Chuyen sang student khac  --> s0 = a[j+1] = f2
 	l.s 	$f2, 0($s0) 			# Load a[j+1] = f2
-	c.lt.s 	$f2, $f1			# Neu f1 < f2
-	li 	$a0, 1
-	movt 	$a0, $zero			
-	bne 	$a0, $zero, incre		# Neu f2 >= f1 --> incre  
+	c.lt.s 	$f2, $f1			# Neu f1 < f2	@@@
+	li 	$a0 , 1
+	movt 	$a0 , $zero
+	bne 	$a0 , $zero ,  incre				# Neu f2 >= f1 --> incre  
 	jal 	swap				# Neu f2 < f1 --> swap 
 incre: 
 	addi 	$t3, $t3, 1 			# j = j + 1
-	j 	loop2 				# nhay vao loop2
+	j 	loop2 				#nhay vao loop2
 
 break_1:
 
 	j 	__show_student			#Show student
-	
 ### a[j-1] vs a[j]
 swap:
 	li 	$s7, 0
 	addi 	$t4, $s0, -52			# t4 = students[j-1] --> f1 --> Vung nho dau tien
 loopx:
-	slti 	$v0, $s7, 13			# s7 < 13 -->v0 = 1
-	beqz 	$v0, end_loopx			# v0 = 0 -> s7 >= 13 -> Thoat vong lap
+	slti 	$v0, $s7, 13			#s7 < 13 -->v0 = 1
+	beqz 	$v0, end_loopx			#v0 = 0 -> s7 >= 13 -> Thoat vong lap
 	lw 	$a1, 0($t4)			# Load gia tri cua f1 ( a[j-1] ) vao a1
 	lw 	$a2, 52($t4)			# Load gia tri cua f2 ( a[j] ) vao a2
 	sw 	$a1, 52($t4)			# Ghi gia tri cua a1 vao a[j]
@@ -197,12 +196,12 @@ loopx:
 	addi 	$s7, $s7, 1			# Tang bien dem len 1
 	j 	loopx
 end_loopx:
-	jr 	$ra				# quay ve incre
+	jr 	$ra				#quay ve incre
 	
-### In ra danh sach sinh vien da duoc sap xep
+### in ra danh sach sinh vien da duoc sap xep
 __show_student:
-	add 	$s0, $s7, $zero			# so sinh vien = 0
-	la 	$t1, students 			# Nap dia chi �au mang cac block luu thong tin sinh vien
+	add 	$s0, $s7, $zero			#so sinh vien = 0
+	la 	$t1, students 			# Nap dia chi dau mang cac block luu thong tin sinh vien
 	li 	$v0, 4 				# Goi ham in string
 	la 	$a0, sorted_list 
 	syscall 
@@ -224,12 +223,11 @@ loop3:
 	syscall 
 continue:
 	addi 	$t0, $t0, 1 			# Tang bien dem so luong sv da duyet
-	addi 	$t1, $t1, 52			# tang dia chi t1 len 52
+	addi 	$t1, $t1, 52			#tang dia chi t1 len 52
 	j 	loop3 				# Lap lai vong lap
 exit:
-	li 	$v0, 10				# Thoat chuong trinh
+	li 	$v0, 10				#Thoat chuong trinh
 	syscall
-	
 #-----------------------------------------------------------
 # END
 #-----------------------------------------------------------
