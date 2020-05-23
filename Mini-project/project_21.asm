@@ -51,7 +51,9 @@ end_error_input:
 	
 	add $a1, $a0, $zero		# So nhap vao duoc luu vao $a1
 	la $a0, number			# Luu vi tri cua number
+	
 	jal digit_degree
+	
 	nop
 	
 	# Hien thi ket qua

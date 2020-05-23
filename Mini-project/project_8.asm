@@ -89,7 +89,7 @@ name:
 	li 	$v0, 54 			# Goi hop thoai nhap ten sinh vien
 	la 	$a0, input_name 		# Tieu de "Nhap ten sinh vien"
 	la 	$a1, 4($t1) 			# Chi ra vi tri luu ten
-	li 	$a2, 46 			# Gioi han do dai ten 46 ki tu
+	li 	$a2, 48 			# Gioi han do dai ten 46 ki tu
 	syscall 
 	bnez 	$a1, re_input 			# Neu a1 != 0 --> Nhap ten qua dai ( a1 = 0 la trang thai dung ) --> Nhap lai name 
 	j mark					# Chay den ham nhap diem 

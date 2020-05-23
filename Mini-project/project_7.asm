@@ -21,38 +21,116 @@
 #-----------------------------------------------------------
 
 .data
-	# Input array 
-	# @note: Chu y so luong phan tu `n` cua mang trong $s1
 	
-	array: .word -1, 150, 190, 170, -1, -1, 160, 180
-	## array: .word 1, -1, -1, -1, -1
-	## array: .word 2, -1, 1, -1, -1
-	## array: .word 2, -1, 1, -1, 1
+	# Input array 
+	# array: .word -1, 150, 190, 170, -1, -1, 160, 180
+	array: .space 4000	# Gioi han do dai cua mang la 1000 phan tu
 	
 	# Luu cac gia tri height cua nguoi ra mot mang moi
-	height: .word 
+	height: .space 4000 
+	message_input: .asciiz "Nhap gia tri dau vao cho mang (-1: bieu thi cho tree) !\n"
+	message_input_length: .asciiz "Ban chua nhap bat ky gia tri nao, vui long nhap lai!"
+	message_input_1: .asciiz "Nhap gia tri (-1: cay, cancel: ket thuc nhap)"
+	message_input_2: .asciiz "Nhap sai gia tri dau vao. Vui long nhap lai!"
+	message_input_3: .asciiz "Ket qua sau khi nhap la:\n"
+	tab: .asciiz "  "
+	message_result: .asciiz "\nKet qua sau khi sap xep la:\n"
 	
 	
 .text
 main:
-	la 	$a0, array		# Lay dia chi cua array cho vao $a0
-	la 	$a1, height 		# Lay dia chi height cho vao $a1
-	addi 	$s0, $zero, -1		# -1: bieu thi Tree trong array input
-	addi 	$s1, $zero, 8		# n: So luong phan tu cua array
-	addi 	$s2, $zero, 0		# m: So luong phan tu cua height
+	la 	$s1, array		# Lay dia chi cua array cho vao $s1
+	la 	$s2, height 		# Lay dia chi height cho vao $s2
+	addi 	$s3, $zero, -1		# -1: bieu thi Tree trong array input
 	
-	j find_height
+	addi 	$s4, $zero, 0		# n: So luong phan tu cua array
+	addi 	$s5, $zero, 0		# m: So luong phan tu cua height
+
+
+### Input array
+	li	$v0, 4
+	la	$a0, message_input
+	syscall
 	
-after_find_height:
-	j sort_height
+	jal	input
+	nop
+	
+### Show input array
+	li 	$v0, 4 
+	la	$a0, message_input_3
+	syscall
+	
+	jal	show_array
+	nop
 
-after_sort:
-	j change
+### Find height
+	jal	find_height
+	nop
+	
+### Sort height
+	jal 	sort_height
+	nop
 
-after_change:
+### Change
+	jal 	change
+	nop
+
+### Show result
+	li 	$v0, 4 
+	la	$a0, message_result
+	syscall
+	
+	jal	show_array
+	nop
+
+### END
 	li $v0, 10
 	syscall
 end_main:
+
+#-----------------------------------------------------------
+# 0. @input: Nhap cac gia tri tu ban phim
+# Chu y: ki hieu -1 la tree
+# Nhap -2 de ket thuc
+#-----------------------------------------------------------
+
+	
+input:
+	li $v0, 51
+	la $a0, message_input_1
+	syscall
+	
+	beq $a0, -1, input_ok		# Neu ma la -1: tree, oke
+	beq $a1, 0, input_ok		# Neu la int => oke
+	beq $a1, -2, end_input		# Neu an cacel => ket thuc nhap
+	
+input_fail:
+	li $v0, 55
+	la $a0, message_input_2
+	syscall
+	j	input
+	
+	
+input_ok:
+	beq 	$a0, 0, input_fail	# Yeu cau height phai > 0
+	slt	$t0, $a0, $s3		# Neu height < -1 fail (Chi -1: bieu thi cho tree oke)
+	beq	$t0, 1, input_fail
+	
+	sll  	$t1, $s4, 2		# $t1 = 4*i
+	add  	$t1, $t1, $s1		# Vi tri cua input[i]
+	sw	$a0, 0($t1)
+	addi 	$s4, $s4, 1		# i = i + 1
+	j   	input
+
+end_input:
+	beqz	$s4, input_length_fail
+	jr	$ra
+
+input_length_fail:
+	li 	$v0, 55
+	la 	$a0, message_input_length
+	syscall
+	j	input
 	
 	
 #-----------------------------------------------------------
@@ -69,25 +147,26 @@ find_height:
 
 fh_loop:
 	sll  	$t1, $t0, 2		# $t1 = 4*i
-	add  	$t1, $t1, $a0		# Vi tri cua input[i]
-	lw   	$s3, 0($t1)		# Lay gia tri cua input[i]
+	add  	$t1, $t1, $s1		# Vi tri cua input[i]
+	lw   	$s6, 0($t1)		# Lay gia tri cua input[i]
 	
-	beq  	$s3, $s0, fh_continue	# Neu gia tri input[i] == -1 => continue (bo qua tree)
+	beq  	$s6, $s3, fh_continue	# Neu gia tri input[i] == -1 => continue (bo qua tree)
 	
 	sll  	$t3, $t2, 2		# $t3 = 4*j
-	add  	$t3, $t3, $a1		# Vi tri cua height[j]
-	sw   	$s3, 0($t3)		# Luu gia tri vao vi tri height[j]
+	add  	$t3, $t3, $s2		# Vi tri cua height[j]
+	sw   	$s6, 0($t3)		# Luu gia tri vao vi tri height[j]
 	addi 	$t2, $t2, 1		# j = j + 1
-	addi 	$s2, $s2, 1		# m = m + 1 (so luong phan tu trong height tang len 1)
+	addi 	$s5, $s5, 1		# m = m + 1 (so luong phan tu trong height tang len 1)
 	
 fh_continue:
 	addi 	$t0, $t0, 1		# i = i + 1
-	slt  	$t4, $t0, $s1		# if i < n => True: return 1; False: return 0
+	slt  	$t4, $t0, $s4		# if i < n => True: return 1; False: return 0
 	bne  	$t4, $zero, fh_loop 
 
 fh_end_loop:
-	j after_find_height
-
+	# j after_find_height
+	jr	$ra
+			
 #### Sap xep cac phan tu trong mang height
 ### BubbleSort
 
@@ -108,10 +187,10 @@ loop_1:
 	addi  	$t1, $zero, 0		# j = 0
 	
 	addi 	$t0, $t0, 1		# i = i + 1
-	sub 	$t2, $s2, $t0		# m - i - 1
+	sub 	$t2, $s5, $t0		# m - i - 1
 	
 	# Kiem tra dieu kien: i < m - 1
-	slt 	$t6, $t0, $s2  
+	slt 	$t6, $t0, $s5  
 	beq 	$t6, $zero, end_loop_1
 	
 loop_2:
@@ -120,17 +199,17 @@ loop_2:
 	beq 	$t5, $zero, end_loop_2
 
 	sll 	$t3, $t1, 2 		# $t3 = 4*j
-	add 	$t3, $t3, $a1		# Vi tri cua A[j]
-	lw  	$s3, 0($t3)		# Lay gia tri cua A[j]
-	lw  	$s4, 4($t3)		# Lay gia tri cua A[j+1]
+	add 	$t3, $t3, $s2		# Vi tri cua A[j]
+	lw  	$s6, 0($t3)		# Lay gia tri cua A[j]
+	lw  	$s7, 4($t3)		# Lay gia tri cua A[j+1]
 	
 if:
-	slt	 $t4, $s3, $s4 		# Kiem tra A[j] < A[j+1] => True: return 1; False: return 0
+	slt	 $t4, $s6, $s7 		# Kiem tra A[j] < A[j+1] => True: return 1; False: return 0
 	bne 	$t4, $zero, end_if
 	
 	# Neu A[j] > A[j + 1] => Thuc hien Swap 2 phan tu nay	
-   	sw 	$s4, 0($t3) 
-    	sw 	$s3, 4($t3) 
+   	sw 	$s7, 0($t3) 
+    	sw 	$s6, 4($t3) 
 
 end_if:
 	addi 	$t1, $t1, 1		# j = j + 1
@@ -140,7 +219,7 @@ end_loop_2:
 	j   	loop_1
 	
 end_loop_1:
-	j 	after_sort
+	jr	$ra
 
 
 #-----------------------------------------------------------
@@ -157,27 +236,55 @@ change:
 	
 i_loop:
 	sll  	$t1, $t0, 2		# $t1 = 4*i
-	add  	$t1, $t1, $a0		# Vi tri cua array[i]
-	lw   	$s3, 0($t1)		# Lay gia tri cua array[i]
+	add  	$t1, $t1, $s1		# Vi tri cua array[i]
+	lw   	$s6, 0($t1)		# Lay gia tri cua array[i]
 	
-	beq  	$s3, $s0, i_continue	# Neu gia tri array[i] == -1 => continue
+	beq  	$s6, $s3, i_continue	# Neu gia tri array[i] == -1 => continue
 	
 	sll  	$t3, $t2, 2		# $t3 = 4*j
-	add  	$t3, $t3, $a1		# Vi tri cua height[j]
-	lw   	$s3, 0($t3)		# Lay gia tri cua height[j]
-	sw 	$s3, 0($t1)		# array[i] = height[j]
+	add  	$t3, $t3, $s2		# Vi tri cua height[j]
+	lw   	$s6, 0($t3)		# Lay gia tri cua height[j]
+	sw 	$s6, 0($t1)		# array[i] = height[j]
 	
-	addi 	$s4, $zero, 0
-	sw 	$s4, 0($t3)		# Reset gia tri cua height[j] = 0
+	addi 	$s7, $zero, 0
+	sw 	$s7, 0($t3)		# Reset gia tri cua height[j] = 0
 	addi 	$t2, $t2, 1		# j = j + 1
 
 i_continue:
 	addi 	$t0, $t0, 1		# i = i + 1
-	slt  	$t4, $t0, $s1		# if i < n: True return: 1; False return: 0
+	slt  	$t4, $t0, $s4		# if i < n: True return: 1; False return: 0
 	bne  	$t4, $zero, i_loop 
 
 i_end_loop:
-	j 	after_change
+	jr	$ra
+
+
+
+#-----------------------------------------------------------
+# @show_array: Hien thi array
+#-----------------------------------------------------------
+show_array:
+	addi 	$t0, $zero, 0		# i = 0
+	
+show_array_loop:
+	sll  	$t1, $t0, 2		# $t1 = 4*i
+	add  	$t1, $t1, $s1		# Vi tri cua input[i]
+	lw   	$s6, 0($t1)		# Lay gia tri cua input[i]
+	
+	li	$v0, 4			# in dau cach de de nhin
+	la	$a0, tab
+	syscall
+	li 	$v0, 1			# in gia tri
+	addi	$a0, $s6, 0
+	syscall
+	
+	
+	addi 	$t0, $t0, 1		# i = i + 1
+	slt  	$t4, $t0, $s4		# if i < n => True: return 1; False: return 0
+	bne  	$t4, $zero, show_array_loop
+
+end_show_array:
+	jr	$ra
 
 #-----------------------------------------------------------
 # END
