@@ -23,7 +23,6 @@
 .data
 	
 	# Input array 
-	# array: .word -1, 150, 190, 170, -1, -1, 160, 180
 	array: .space 4000	# Gioi han do dai cua mang la 1000 phan tu
 	
 	# Luu cac gia tri height cua nguoi ra mot mang moi
