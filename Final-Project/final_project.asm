@@ -14,10 +14,6 @@
 	error_mess: 	.asciiz "Lenh hop ngu khong hop le, sai khuon dang lenh !\n"
 	completed_mess: .asciiz "Lenh hop ngu chinh xac !\n"
 	
-	none_mess: .asciiz "None oke\n"
-	token_mess: .asciiz "token oke\n"
-	not_mess: .asciiz "Sai cau truc\n"
-	
 	command:  .space 100	# Luu cau lenh
 	opcode:   .space 30	# Luu ma lenh, vi du: add, and,...
 	number:   .space 30	# imm | shamt
@@ -253,19 +249,36 @@ check_operand:
 
 	li $t8, 1				# Thanh ghi
 	beq $t8, $t9, go_register
-	go_register:
-		jal	check_register
-		nop
 	
-	#li $t8, 2				# So hang nguyen
+	li $t8, 2				# So hang nguyen
+	beq $t8, $t9, go_number
 	
-	#li $t8, 3				# Ident
+	li $t8, 3				# Ident
+	beq $t8, $t0, go_ident
 	
-	
+end_check_operand:
 	# Tra lai $ra de tro ve check_operand
 	lw   $ra, 0($sp)
 	addi $sp, $sp, 4
 	jr   $ra
+
+#-----------------------------------------------------------
+#  jal toi cac ham check de kiem tra
+#-----------------------------------------------------------
+	go_register:				# Check register
+		jal check_register
+		nop
+	j end_check_operand
+	
+	go_number:				# Check number
+		#jal check_number
+		#nop
+	j end_check_operand
+	
+	go_ident:				# Check ident
+		jal check_ident
+		nop
+	j end_check_operand
 
 #-----------------------------------------------------------
 #  @check_none: Kiem tra xem con ky tu nao o cuoi khong
@@ -295,6 +308,7 @@ none_ok:
 # s7: Luu index cua command
 # $t9: index cua token
 #-----------------------------------------------------------
+
 check_register:
 	la $a0, command
 	la $a1, token
@@ -361,6 +375,24 @@ end_compare_token_register:
 	la $a0, hopLe_mess
 	syscall
 	
+	jr $ra
+	
+#-----------------------------------------------------------
+# @check_number: Kiem tra so nguyen
+# a0: command (vi tri luu command)
+# a1: number (vi tri luu number)
+#-----------------------------------------------------------
+check_number:
+
+	jr $ra
+
+#-----------------------------------------------------------
+# @check_ident: Kiem tra ident (label)
+# a0: command (vi tri luu command)
+# a1: ident (vi tri luu ident)
+#-----------------------------------------------------------
+check_ident:
+
 	jr $ra
 
 #-----------------------------------------------------------
