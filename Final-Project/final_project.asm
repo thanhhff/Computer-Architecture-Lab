@@ -12,7 +12,8 @@
 	toanHang_mess: 	.asciiz "Toan hang: "
 	hopLe_mess: 	.asciiz " - hop le.\n"
 	error_mess: 	.asciiz "Lenh hop ngu khong hop le, sai khuon dang lenh !\n"
-	completed_mess: .asciiz "Lenh hop ngu chinh xac !\n"
+	completed_mess: .asciiz "\nLenh hop ngu chinh xac !\n"
+	chuKy_mess:	.asciiz "So chu ky cua lenh la: "
 	
 	command:  .space 100	# Luu cau lenh
 	opcode:   .space 30	# Luu ma lenh, vi du: add, and,...
@@ -152,20 +153,20 @@ check:
 #-----------------------------------------------------------
 check_opcode:
 	
-	li $t0, 0			# i = 0
-	li  $s6, 0			# so luong cac ki tu cua opcode = 0
-	la  $a0, command		# Dia chi cua command
-	la  $a1, opcode			# Dia chi cua opcode
+	li $t0, 0					# i = 0
+	li  $s6, 0					# so luong cac ki tu cua opcode = 0
+	la  $a0, command				# Dia chi cua command
+	la  $a1, opcode					# Dia chi cua opcode
 	
 read_opcode:
-	add $t1, $a0, $t0		# Dich bit cua command
-	add $t2, $a1, $t0		# Dich bit cua opcode
+	add $t1, $a0, $t0				# Dich bit cua command
+	add $t2, $a1, $t0				# Dich bit cua opcode
 	
 	lb  $t3, 0($t1)
 	
-	beq $t3, 32, read_opcode_done  	# Neu co dau cach ' ' ket thuc read opcode
-	beq $t3, 10, read_opcode_done	# Neu dau '\n' ket thuc read opcode
-	beq $t3, 0,  read_opcode_done	# Ket thuc chuoi
+	beq $t3, 32, read_opcode_done  			# Neu co dau cach ' ' ket thuc read opcode
+	beq $t3, 10, read_opcode_done			# Neu dau '\n' ket thuc read opcode
+	beq $t3, 0,  read_opcode_done			# Ket thuc chuoi
 	
 	sb  $t3, 0($t2)
 	
@@ -173,19 +174,19 @@ read_opcode:
 	j read_opcode
 read_opcode_done:	
 	
-	addi $s6, $t0, 0		# $s6: So luong ki tu cua opcode
-	addi $s7, $t0, 1		# luu index cua command
+	addi $s6, $t0, 0				# $s6: So luong ki tu cua opcode
+	addi $s7, $t0, 1				# luu index cua command
 	
 	la $a2, library
 	li $t0, -10
 	
 check_opcode_inlib:
-	addi $t0, $t0, 10		# Buoc nhay bang 10 de nhay den tung Instruction
+	addi $t0, $t0, 10				# Buoc nhay bang 10 de nhay den tung Instruction
 	
-	li $t1, 0 			# i = 0
-	li $t2, 0			# j = 0
+	li $t1, 0 					# i = 0
+	li $t2, 0					# j = 0
 	
-	add $t1, $t1, $t0		# Cong buoc nhay
+	add $t1, $t1, $t0				# Cong buoc nhay
 	
 	compare_opcode:
 		add $t3, $a2, $t1			# t3 tro thanh vi tri tro den dau cua tung Instruction
@@ -306,6 +307,18 @@ check_none:
 		
 none_ok:
 	li $v0, 4
+	la $a0, chuKy_mess
+	syscall
+	
+	li  $s3, 8			# Vi tri operand trong Library
+	add $t0, $s5, $s3
+	lb  $t0, 0($t0)
+	
+	li $v0, 11
+	add $a0, $t0, $zero
+	syscall
+
+	li $v0, 4
 	la $a0, completed_mess
 	syscall
 	j m_menu_start
@@ -323,38 +336,38 @@ check_register:
 	la $a0, command
 	la $a1, token
 	la $a2, tokenRegisters
-	add $t0, $a0, $s7			# Tro den vi tri cac instruction
+	add $t0, $a0, $s7				# Tro den vi tri cac instruction
 	
-	li $t1, 0				# i = 0
-	li $t9, 0				# index cua token
+	li $t1, 0					# i = 0
+	li $t9, 0					# index cua token
 	
 read_token_register:
-	add $t2, $t0, $t1			# command
-	add $t3, $a1, $t1			# token
+	add $t2, $t0, $t1				# command
+	add $t3, $a1, $t1				# token
 	lb $t4, 0($t2)
 		
-	beq $t4, 44, end_read_token		# Gap ky tu ' , '
-	beq $t4, 10, end_read_token		# Gap ky tu '\n'
-	beq $t4, 0, end_read_token		# Ket thuc
+	beq $t4, 44, end_read_token			# Gap ky tu ' , '
+	beq $t4, 10, end_read_token			# Gap ky tu '\n'
+	beq $t4, 0, end_read_token			# Ket thuc
 		
 	addi $t1, $t1, 1
-	beq $t4, 32, read_token_register	 # Neu gap dau ' ' thi tiep tuc 
+	beq $t4, 32, read_token_register		 # Neu gap dau ' ' thi tiep tuc 
 		
 	sb $t4, 0($t3)
 	addi $t9, $t9, 1
 	j read_token_register
 		
 end_read_token:
-	add $s7, $s7, $t1			# Cap nhat lai gia tri index
+	add $s7, $s7, $t1				# Cap nhat lai gia tri index
 		
 	li $t0, -6
 compare_token_register:
-	addi $t0, $t0, 6			# Buoc nhay bang 6 de nhay den tung Register
+	addi $t0, $t0, 6				# Buoc nhay bang 6 de nhay den tung Register
 	
-	li $t1, 0 				# i = 0
-	li $t2, 0				# j = 0
+	li $t1, 0 					# i = 0
+	li $t2, 0					# j = 0
 	
-	add $t1, $t1, $t0			# Cong buoc nhay
+	add $t1, $t1, $t0				# Cong buoc nhay
 	
 	compare_reg:
 		add $t3, $a2, $t1			# t3 tro thanh vi tri tro den dau cua tung Register
@@ -409,7 +422,7 @@ read_ident:
 	add $t3, $a1, $t1			# ident
 	lb $t4, 0($t2)
 		
-	beq $t4, 44, end_read_token		# Gap ky tu ' , '
+	beq $t4, 44, end_read_ident		# Gap ky tu ' , '
 	beq $t4, 10, end_read_ident		# Gap ky tu '\n'
 	beq $t4, 0, end_read_ident		# Ket thuc
 		
@@ -472,9 +485,6 @@ not_found:
 	
 	j m_menu_start
 	
-
-
-
 
 
 
