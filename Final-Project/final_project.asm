@@ -21,12 +21,9 @@
 	token:    .space 30	# cac thanh ghi, vi du: $zero, $at,...
 	
 	# Cau truc cua library:
-	# opcode (5 byte) - so luong operation - chu ky lenh
-	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 0 - khong co 
-	
+	# opcode (6 byte) - operation - chu ky lenh
+	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 4 - imm($rs); 0 - khong co 
 	library:	.asciiz "add***1111;sub***1111;addi**1121;addu**1111;addiu*1121;subu**1111;mfc0**1101;mult**1101;multu*1101;div***1101;mfhi**1001;mflo**1001;and***1111;or****1111;andi**1121;ori***1121;sll***1121;srl***1121;lw****1401;sw****1401;lbu***1401;sb****1401;lui***1201;beq***1132;bne***1132;slt***1111;slti**1121;sltiu*1121;j*****3001;jal***3001;jr****1001;nop***0001"
-	
-	#library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;mult*1101;"
 	numberGroup: 	.asciiz "0123456789"
 	characterGroup: .asciiz "0123456789qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
 	# Moi thanh ghi cach nhau 6 byte
