@@ -24,7 +24,7 @@
 	# opcode (6 byte) - operation - chu ky lenh
 	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 4 - imm($rs); 0 - khong co 
 	library:	.asciiz "add***1111;sub***1111;addi**1121;addu**1111;addiu*1121;subu**1111;mfc0**1101;mult**1101;multu*1101;div***1101;mfhi**1001;mflo**1001;and***1111;or****1111;andi**1121;ori***1121;sll***1121;srl***1121;lw****1401;sw****1401;lbu***1401;sb****1401;lui***1201;beq***1132;bne***1132;slt***1111;slti**1121;sltiu*1121;j*****3001;jal***3001;jr****1001;nop***0001"
-	numberGroup: 	.asciiz "0123456789"
+	numberGroup: 	.asciiz "0123456789-"
 	characterGroup: .asciiz "0123456789qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
 	# Moi thanh ghi cach nhau 6 byte
 	tokenRegisters: .asciiz "$zero $at   $v0   $v1   $a0   $a1   $a2   $a3   $t0   $t1   $t2   $t3   $t4   $t5   $t6   $t7   $s0   $s1   $s2   $s3   $s4   $s5   $s6   $s7   $t8   $t9   $k0   $k1   $gp   $sp   $fp   $ra   $0    $1    $2    $3    $4    $5    $7    $8    $9    $10   $11   $12   $13   $14   $15   $16   $17   $18   $19   $20   $21   $22   $21   $22   $23   $24   $25   $26   $27   $28   $29   $30   $31   "
@@ -491,6 +491,9 @@ read_ident:
 end_read_ident:
 	add $s7, $s7, $t1			# Cap nhat lai gia tri index
 	beq $t9, 0, not_found			# Khong co label
+	
+	#li $v0, 10
+	#syscall
 
 	li $t2, 0				# index cho Ident
 compare_ident:
