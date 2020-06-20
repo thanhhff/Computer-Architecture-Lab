@@ -19,7 +19,6 @@
 	opcode:   	.space 30	# Luu ma lenh, vi du: add, and,...
 	ident:    	.space 30	# nhan | hoac number
 	token:    	.space 30	# cac thanh ghi, vi du: $zero, $at,...
-	number:		.space 30	# Luu cac number
 	
 	# Cau truc cua library:
 	# opcode (6 byte) - operation - chu ky lenh
@@ -88,8 +87,7 @@ input:
 #-----------------------------------------------------------
 # 2. @check: Kiem tra cau lenh
 # - Buoc 1: Kiem tra opcode (add, and, or,...) ten lenh
-# - Buoc 2: Kiem tra Operand thu nhat 
-#          
+# - Buoc 2: Kiem tra Operand lan luot cac operand (Toan hang)
 #-----------------------------------------------------------
 check:
 	# Luu $ra de tro ve main
@@ -151,6 +149,10 @@ check:
 # - Buoc 2: So sanh voi trong bo tu dien xem co opcode do khong
 # 	    - Neu khong co ket thuc va quay lai menu
 #	    - Meu co, luu lai dia chi opcode trong library va tiep tuc kiem tra 
+# $a0: command
+# $a1: opcode
+# $s7: index of command
+# $t9: index of opcode
 #-----------------------------------------------------------
 check_opcode:
 	la  $a0, command				# Dia chi cua command
@@ -160,20 +162,16 @@ check_opcode:
 remove_space_command:					# Xoa cac dau cach phia truoc lenh
 	add $t1, $a0, $t0
 	lb  $t2, 0($t1)
-	
 	bne $t2, 32, end_remove_space_command		# Neu khong phai ' ' -> Ket thuc
 	addi $t0, $t0, 1
-	j remove_space_command
-	
+	j remove_space_command	
 end_remove_space_command:	
-	#add $s7, $s7, $t0
 
 	li  $t9, 0					# index for opcode
 	li  $s6, 0					# so luong cac ki tu cua opcode = 0
 read_opcode:
 	add $t1, $a0, $t0				# Dich bit cua command
 	add $t2, $a1, $t9				# Dich bit cua opcode
-	
 	lb  $t3, 0($t1)
 	
 	beq $t3, 32, read_opcode_done  			# Neu co dau cach ' ' ket thuc read opcode
@@ -181,7 +179,6 @@ read_opcode:
 	beq $t3, 0,  read_opcode_done			# Ket thuc chuoi
 
 	sb  $t3, 0($t2)
-	
 	addi $t9, $t9, 1
 	addi $t0, $t0, 1
 	j read_opcode
@@ -189,16 +186,13 @@ read_opcode_done:
 	
 	addi $s6, $t9, 0				# $s6: So luong ki tu cua opcode
 	add $s7, $s7, $t0				# luu index cua command
-	
 	la $a2, library
 	li $t0, -11
 	
 check_opcode_inlib:
 	addi $t0, $t0, 11				# Buoc nhay bang 10 de nhay den tung Instruction
-	
 	li $t1, 0 					# i = 0
 	li $t2, 0					# j = 0
-	
 	add $t1, $t1, $t0				# Cong buoc nhay
 	
 	compare_opcode:
@@ -206,15 +200,12 @@ check_opcode_inlib:
 		lb  $t4, 0($t3)
 		beq $t4, 0, not_found
 		beq $t4, 42, check_len_opcode		# Neu gap ky tu `*` => Kiem tra do dai 
-	
 		add $t5, $a1, $t2			# Load opcode
 		lb  $t6, 0($t5)
-	
 		bne $t4, $t6, check_opcode_inlib	# So sanh 2 ki tu, neu khong bang nhau thi tinh den Instruction tiep theo.
 		addi $t1, $t1, 1			# i = i + 1
 		addi $t2, $t2, 1			# j = j + 1
 		j compare_opcode
-	
 	check_len_opcode:
 		bne $t2, $s6, check_opcode_inlib
 end_check_opcode_inlib:
@@ -225,9 +216,20 @@ end_check_opcode_inlib:
 	li $v0, 4
 	la $a0, opcode_mess
 	syscall
-	li $v0, 4
-	la $a0, opcode
-	syscall 
+	
+	la $a3, opcode
+	li $t0, 0
+	print_opcode:
+		beq $t0, $t9, end_print_opcode
+		add $t1, $a3, $t0
+		lb  $t2, 0($t1)
+		li $v0, 11
+		add $a0, $t2, $zero
+		syscall 
+		addi $t0, $t0, 1
+		j print_opcode
+	end_print_opcode:
+	
 	li $v0, 4
 	la $a0, hopLe_mess
 	syscall
@@ -410,9 +412,20 @@ end_compare_token_register:
 	li $v0, 4
 	la $a0, toanHang_mess
 	syscall
-	li $v0, 4
-	la $a0, token
-	syscall 
+	
+	la $a3, token
+	li $t0, 0
+	print_token_register:
+		beq $t0, $t9, end_print_token_register
+		add $t1, $a3, $t0
+		lb  $t2, 0($t1)
+		li $v0, 11
+		add $a0, $t2, $zero
+		syscall 
+		addi $t0, $t0, 1
+		j print_token_register
+	end_print_token_register:
+	
 	li $v0, 4
 	la $a0, hopLe_mess
 	syscall
@@ -420,9 +433,19 @@ end_compare_token_register:
 	
 on_token_number_register:
 
-	li $v0, 4
-	la $a0, token
-	syscall 
+	la $a3, token
+	li $t0, 0
+	print_on_token_register:
+		beq $t0, $t9, end_print_on_token_register
+		add $t1, $a3, $t0
+		lb  $t2, 0($t1)
+		li $v0, 11
+		add $a0, $t2, $zero
+		syscall 
+		addi $t0, $t0, 1
+		j print_on_token_register
+	end_print_on_token_register:
+	
 	li $v0, 11
 	li $a0, 41
 	syscall 
@@ -499,9 +522,20 @@ end_compare_ident:
 	li $v0, 4
 	la $a0, toanHang_mess
 	syscall
-	li $v0, 4
-	la $a0, ident
-	syscall 
+	
+	la $a3, ident
+	li $t0, 0
+	print_ident:
+		beq $t0, $t9, end_print_ident
+		add $t1, $a3, $t0
+		lb  $t2, 0($t1)
+		li $v0, 11
+		add $a0, $t2, $zero
+		syscall 
+		addi $t0, $t0, 1
+		j print_ident
+	end_print_ident:
+	
 	li $v0, 4
 	la $a0, hopLe_mess
 	syscall
@@ -511,9 +545,20 @@ on_number_register:
 	li $v0, 4
 	la $a0, toanHang_mess
 	syscall
-	li $v0, 4
-	la $a0, ident
-	syscall 
+
+	la $a3, ident
+	li $t0, 0
+	print_on_ident:
+		beq $t0, $t9, end_print_on_ident
+		add $t1, $a3, $t0
+		lb  $t2, 0($t1)
+		li $v0, 11
+		add $a0, $t2, $zero
+		syscall 
+		addi $t0, $t0, 1
+		j print_on_ident
+	end_print_on_ident:
+	
 	li $v0, 11
 	li $a0, 40
 	syscall
