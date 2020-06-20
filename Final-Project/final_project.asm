@@ -11,7 +11,7 @@
 	opcode_mess: 	.asciiz "Opcode: "
 	toanHang_mess: 	.asciiz "Toan hang: "
 	hopLe_mess: 	.asciiz " - hop le.\n"
-	error_mess: 	.asciiz "Lenh hop ngu khong hop le, sai khuon dang lenh !\n"
+	error_mess: 	.asciiz "\nLenh hop ngu khong hop le, sai khuon dang lenh !\n"
 	completed_mess: .asciiz "\nLenh hop ngu chinh xac !\n"
 	chuKy_mess:	.asciiz "So chu ky cua lenh la: "
 	
@@ -153,30 +153,42 @@ check:
 #	    - Meu co, luu lai dia chi opcode trong library va tiep tuc kiem tra 
 #-----------------------------------------------------------
 check_opcode:
-	
-	li $t0, 0					# i = 0
-	li  $s6, 0					# so luong cac ki tu cua opcode = 0
 	la  $a0, command				# Dia chi cua command
 	la  $a1, opcode					# Dia chi cua opcode
+	li  $t0, 0
 	
+remove_space_command:					# Xoa cac dau cach phia truoc lenh
+	add $t1, $a0, $t0
+	lb  $t2, 0($t1)
+	
+	bne $t2, 32, end_remove_space_command		# Neu khong phai ' ' -> Ket thuc
+	addi $t0, $t0, 1
+	j remove_space_command
+	
+end_remove_space_command:	
+	#add $s7, $s7, $t0
+
+	li  $t9, 0					# index for opcode
+	li  $s6, 0					# so luong cac ki tu cua opcode = 0
 read_opcode:
 	add $t1, $a0, $t0				# Dich bit cua command
-	add $t2, $a1, $t0				# Dich bit cua opcode
+	add $t2, $a1, $t9				# Dich bit cua opcode
 	
 	lb  $t3, 0($t1)
 	
 	beq $t3, 32, read_opcode_done  			# Neu co dau cach ' ' ket thuc read opcode
 	beq $t3, 10, read_opcode_done			# Neu dau '\n' ket thuc read opcode
 	beq $t3, 0,  read_opcode_done			# Ket thuc chuoi
-	
+
 	sb  $t3, 0($t2)
 	
+	addi $t9, $t9, 1
 	addi $t0, $t0, 1
 	j read_opcode
 read_opcode_done:	
 	
-	addi $s6, $t0, 0				# $s6: So luong ki tu cua opcode
-	addi $s7, $t0, 1				# luu index cua command
+	addi $s6, $t9, 0				# $s6: So luong ki tu cua opcode
+	add $s7, $s7, $t0				# luu index cua command
 	
 	la $a2, library
 	li $t0, -11
