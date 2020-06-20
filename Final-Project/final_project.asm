@@ -16,15 +16,15 @@
 	
 	command:  .space 100	# Luu cau lenh
 	opcode:   .space 30	# Luu ma lenh, vi du: add, and,...
-	number:   .space 30	# imm | shamt
-	ident:    .space 30	# nhan
+	ident:    .space 30	# nhan | hoac number
 	token:    .space 30	# cac thanh ghi, vi du: $zero, $at,...
 	
 	# Cau truc cua library:
 	# opcode (5 byte) - so luong operation - chu ky lenh
 	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 0 - khong co 
-	library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;"
-	charGroup: 	.asciiz "qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
+	library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;mult*1101;"
+	numberGroup: 	.asciiz "0123456789"
+	characterGroup: .asciiz "0123456789qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
 	# Moi thanh ghi cach nhau 6 byte
 	tokenRegisters: .asciiz "$zero $at   $v0   $v1   $a0   $a1   $a2   $a3   $t0   $t1   $t2   $t3   $t4   $t5   $t6   $t7   $s0   $s1   $s2   $s3   $s4   $s5   $s6   $s7   $t8   $t9   $k0   $k1   $gp   $sp   $fp   $ra   $0    $1    $2    $3    $4    $5    $7    $8    $9    $10   $11   $12   $13   $14   $15   $16   $17   $18   $19   $20   $21   $22   $21   $22   $23   $24   $25   $26   $27   $28   $29   $30   $31   "
 
@@ -106,6 +106,10 @@ check:
 	nop
 	
 	# START CHECK OPERAND 2		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
+	li  $s3, 6			# Vi tri operand trong Library
+	add $t0, $s5, $s3
+	lb  $t0, 0($t0)
+	beq $t0, 48, check_none		# Kiem tra neu operand = 0 -> ket thuc; ky tu 0 trong ASCII
 	
 	la   $a0, command
 	add  $t0, $a0, $s7 		# tro toi vi tri tiep tuc cua command
@@ -113,18 +117,21 @@ check:
 	bne  $t1, 44, not_found		# Dau ','
 	add  $s7, $s7, 1
 	
-	li  $s3, 6			# Vi tri operand trong Library
 	jal check_operand
 	nop
 	
 	# START CHECK OPERAND 3		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
+	li  $s3, 7			# Vi tri operand trong Library
+	add $t0, $s5, $s3
+	lb  $t0, 0($t0)
+	beq $t0, 48, check_none		# Kiem tra neu operand = 0 -> ket thuc; ky tu 0 trong ASCII
+	
 	la   $a0, command
 	add  $t0, $a0, $s7 		# tro toi vi tri tiep tuc cua command
 	lb   $t1, 0($t0)        
 	bne  $t1, 44, not_found		# Dau ','
 	add  $s7, $s7, 1
 	
-	li  $s3, 7			# Vi tri operand trong Library
 	jal check_operand
 	nop
 	
@@ -254,7 +261,7 @@ check_operand:
 	beq $t8, $t9, go_number
 	
 	li $t8, 3				# Ident
-	beq $t8, $t0, go_ident
+	beq $t8, $t9, go_ident
 	
 end_check_operand:
 	# Tra lai $ra de tro ve check_operand
@@ -271,14 +278,17 @@ end_check_operand:
 	j end_check_operand
 	
 	go_number:				# Check number
-		#jal check_number
-		#nop
-	j end_check_operand
-	
-	go_ident:				# Check ident
+		la $a2, numberGroup
 		jal check_ident
 		nop
 	j end_check_operand
+	
+	go_ident:				# Check Ident
+		la $a2, characterGroup
+		jal check_ident
+		nop
+	j end_check_operand
+	
 
 #-----------------------------------------------------------
 #  @check_none: Kiem tra xem con ky tu nao o cuoi khong
@@ -376,22 +386,79 @@ end_compare_token_register:
 	syscall
 	
 	jr $ra
-	
-#-----------------------------------------------------------
-# @check_number: Kiem tra so nguyen
-# a0: command (vi tri luu command)
-# a1: number (vi tri luu number)
-#-----------------------------------------------------------
-check_number:
-
-	jr $ra
 
 #-----------------------------------------------------------
-# @check_ident: Kiem tra ident (label)
+# @check_ident: Kiem tra ident (label) HOAC number
 # a0: command (vi tri luu command)
 # a1: ident (vi tri luu ident)
+# a2: characterGroup | numberGroup
+# $s7: luu index cua command
+# $t9: index cua ident
 #-----------------------------------------------------------
 check_ident:
+	la $a0, command
+	la $a1, ident
+	
+	add $t0, $a0, $s7			# Tro den vi tri cac instruction
+	
+	li $t1, 0				# i = 0
+	li $t9, 0				# index cua ident
+	
+read_ident:
+	add $t2, $t0, $t1			# command
+	add $t3, $a1, $t1			# ident
+	lb $t4, 0($t2)
+		
+	beq $t4, 44, end_read_token		# Gap ky tu ' , '
+	beq $t4, 10, end_read_ident		# Gap ky tu '\n'
+	beq $t4, 0, end_read_ident		# Ket thuc
+		
+	addi $t1, $t1, 1
+	beq $t4, 32, read_ident	 		# Neu gap dau ' ' thi tiep tuc 
+		
+	sb $t4, 0($t3)
+	addi $t9, $t9, 1
+	j read_ident
+		
+end_read_ident:
+	add $s7, $s7, $t1			# Cap nhat lai gia tri index
+	beq $t9, 0, not_found			# Khong co label
+
+	li $t2, 0				# index cho Ident
+compare_ident:
+	beq  $t2, $t9, end_compare_ident	# ket thuc chuoi
+	li   $t1, 0				# index cho characterGroup
+	
+	add  $t3, $a1, $t2		
+	lb   $t3, 0($t3)			# Tung char trong Ident
+	
+	loop_Group:				# Kiem tra tung ky tu Ident co trong Group hay khong
+		add $t4, $a2, $t1
+		lb $t4, 0($t4)
+		beq $t4, 0, not_found		# Khong co -> Khong tim thay
+		beq $t4, $t3, end_loop_Group
+		
+		addi $t1, $t1, 1
+		j loop_Group
+		
+	end_loop_Group:
+	
+	addi $t2, $t2, 1
+	
+	j compare_ident
+
+end_compare_ident:
+
+	# In thong tin ra man hinh
+	li $v0, 4
+	la $a0, toanHang_mess
+	syscall
+	li $v0, 4
+	la $a0, ident
+	syscall 
+	li $v0, 4
+	la $a0, hopLe_mess
+	syscall
 
 	jr $ra
 
