@@ -23,7 +23,10 @@
 	# Cau truc cua library:
 	# opcode (5 byte) - so luong operation - chu ky lenh
 	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 0 - khong co 
-	library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;mult*1101;"
+	
+	library:	.asciiz "add***1111;sub***1111;addi**1121;addu**1111;addiu*1121;subu**1111;mfc0**1101;mult**1101;multu*1101;div***1101;mfhi**1001;mflo**1001;and***1111;or****1111;andi**1121;ori***1121;sll***1121;srl***1121;lw****1401;sw****1401;lbu***1401;sb****1401;lui***1201;beq***1132;bne***1132;slt***1111;slti**1121;sltiu*1121;j*****3001;jal***3001;jr****1001;nop***0001"
+	
+	#library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;mult*1101;"
 	numberGroup: 	.asciiz "0123456789"
 	characterGroup: .asciiz "0123456789qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
 	# Moi thanh ghi cach nhau 6 byte
@@ -102,12 +105,12 @@ check:
 	nop
 	
 	# START CHECK OPERAND 1
-	li  $s3, 5			# Vi tri operand trong Library
+	li  $s3, 6			# Vi tri operand trong Library
 	jal check_operand
 	nop
 	
 	# START CHECK OPERAND 2		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
-	li  $s3, 6			# Vi tri operand trong Library
+	li  $s3, 7			# Vi tri operand trong Library
 	add $t0, $s5, $s3
 	lb  $t0, 0($t0)
 	beq $t0, 48, check_none		# Kiem tra neu operand = 0 -> ket thuc; ky tu 0 trong ASCII
@@ -122,7 +125,7 @@ check:
 	nop
 	
 	# START CHECK OPERAND 3		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
-	li  $s3, 7			# Vi tri operand trong Library
+	li  $s3, 8			# Vi tri operand trong Library
 	add $t0, $s5, $s3
 	lb  $t0, 0($t0)
 	beq $t0, 48, check_none		# Kiem tra neu operand = 0 -> ket thuc; ky tu 0 trong ASCII
@@ -178,10 +181,10 @@ read_opcode_done:
 	addi $s7, $t0, 1				# luu index cua command
 	
 	la $a2, library
-	li $t0, -10
+	li $t0, -11
 	
 check_opcode_inlib:
-	addi $t0, $t0, 10				# Buoc nhay bang 10 de nhay den tung Instruction
+	addi $t0, $t0, 11				# Buoc nhay bang 10 de nhay den tung Instruction
 	
 	li $t1, 0 					# i = 0
 	li $t2, 0					# j = 0
@@ -310,7 +313,7 @@ none_ok:
 	la $a0, chuKy_mess
 	syscall
 	
-	li  $s3, 8			# Vi tri operand trong Library
+	li  $s3, 9			# Vi tri operand trong Library
 	add $t0, $s5, $s3
 	lb  $t0, 0($t0)
 	
