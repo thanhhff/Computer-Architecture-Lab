@@ -15,10 +15,11 @@
 	completed_mess: .asciiz "\nLenh hop ngu chinh xac !\n"
 	chuKy_mess:	.asciiz "So chu ky cua lenh la: "
 	
-	command:  .space 100	# Luu cau lenh
-	opcode:   .space 30	# Luu ma lenh, vi du: add, and,...
-	ident:    .space 30	# nhan | hoac number
-	token:    .space 30	# cac thanh ghi, vi du: $zero, $at,...
+	command:  	.space 100	# Luu cau lenh
+	opcode:   	.space 30	# Luu ma lenh, vi du: add, and,...
+	ident:    	.space 30	# nhan | hoac number
+	token:    	.space 30	# cac thanh ghi, vi du: $zero, $at,...
+	number:		.space 30	# Luu cac number
 	
 	# Cau truc cua library:
 	# opcode (6 byte) - operation - chu ky lenh
@@ -42,11 +43,11 @@ m_menu_start:
 	li $v0, 5
 	syscall
 	
-	beq $v0, 2, end_main	# 2: ket thuc
-	beq $v0, 1, m_menu_end	# 1: thuc hien kiem tra
+	beq $v0, 2, end_main		# 2: ket thuc
+	beq $v0, 1, m_menu_end		# 1: thuc hien kiem tra
 	
 	li $v0, 4
-	la $a0, menu_error_mess # Nhap sai
+	la $a0, menu_error_mess	 	# Nhap sai
 	syscall
 	
 	j m_menu_start
@@ -251,18 +252,18 @@ check_operand:
 	end_space_remove:
 	
 	add $s7, $s7, $t1			# Cap nhat lai index command
-		
+	
+	li $s2, 0				# Tat kich hoat check number_register
 	li $t8, 0				# Khong co
 	beq $t8, $t9, check_none
-
 	li $t8, 1				# Thanh ghi
 	beq $t8, $t9, go_register
-	
 	li $t8, 2				# So hang nguyen
 	beq $t8, $t9, go_number
-	
 	li $t8, 3				# Ident
 	beq $t8, $t9, go_ident
+	li $t8, 4				# Check number & register
+	beq $t8, $t9, go_number_register		
 	
 end_check_operand:
 	# Tra lai $ra de tro ve check_operand
@@ -290,7 +291,11 @@ end_check_operand:
 		nop
 	j end_check_operand
 	
-
+	go_number_register:			# Check number-register
+		jal check_number_register
+		nop
+	j end_check_operand
+	
 #-----------------------------------------------------------
 #  @check_none: Kiem tra xem con ky tu nao o cuoi khong
 #-----------------------------------------------------------
@@ -346,6 +351,7 @@ read_token_register:
 	add $t3, $a1, $t1				# token
 	lb $t4, 0($t2)
 		
+	beq $t4, 41, end_read_token			# Gap ky tu ')'
 	beq $t4, 44, end_read_token			# Gap ky tu ' , '
 	beq $t4, 10, end_read_token			# Gap ky tu '\n'
 	beq $t4, 0, end_read_token			# Ket thuc
@@ -388,6 +394,7 @@ compare_token_register:
 		
 end_compare_token_register:
 
+	beq $s2, 1, on_token_number_register
 	li $v0, 4
 	la $a0, toanHang_mess
 	syscall
@@ -397,7 +404,19 @@ end_compare_token_register:
 	li $v0, 4
 	la $a0, hopLe_mess
 	syscall
+	jr $ra
 	
+on_token_number_register:
+
+	li $v0, 4
+	la $a0, token
+	syscall 
+	li $v0, 11
+	li $a0, 41
+	syscall 
+	li $v0, 4
+	la $a0, hopLe_mess
+	syscall
 	jr $ra
 
 #-----------------------------------------------------------
@@ -422,6 +441,7 @@ read_ident:
 	add $t3, $a1, $t1			# ident
 	lb $t4, 0($t2)
 		
+	beq $t4, 40, end_read_ident		# Gap ky tu '('
 	beq $t4, 44, end_read_ident		# Gap ky tu ' , '
 	beq $t4, 10, end_read_ident		# Gap ky tu '\n'
 	beq $t4, 0, end_read_ident		# Ket thuc
@@ -462,6 +482,7 @@ compare_ident:
 
 end_compare_ident:
 
+	beq $s2, 1, on_number_register
 	# In thong tin ra man hinh
 	li $v0, 4
 	la $a0, toanHang_mess
@@ -472,8 +493,58 @@ end_compare_ident:
 	li $v0, 4
 	la $a0, hopLe_mess
 	syscall
-
 	jr $ra
+	
+on_number_register:
+	li $v0, 4
+	la $a0, toanHang_mess
+	syscall
+	li $v0, 4
+	la $a0, ident
+	syscall 
+	li $v0, 11
+	li $a0, 40
+	syscall
+	jr $ra
+
+#-----------------------------------------------------------
+# @check_number_register: Kiem tra number - ident
+# a0: command (vi tri luu command)
+# $s7: luu index cua command
+# $s2: Luu kich hoat check number register
+#-----------------------------------------------------------
+
+check_number_register:
+	# Luu $ra de tro ve
+	addi $sp, $sp, -4
+	sw   $ra, 0($sp)
+	
+	li $s2, 1				# Bat kich hoat number_register
+	
+	# Check number
+	la $a2, numberGroup
+	jal check_ident
+	nop
+	
+	la $a0, command
+	add $t0, $a0, $s7			# Tro den vi tri cac instruction
+	lb $t0, 0($t0)
+	bne $t0, 40, not_found			# Neu ki tu khong phai la dau '('
+	addi $s7, $s7, 1
+	
+	# Check register
+	jal check_register
+	nop
+	la $a0, command
+	add $t0, $a0, $s7			# Tro den vi tri cac instruction
+	lb $t0, 0($t0)
+	bne $t0, 41, not_found			# Neu ki tu khong phai la dau ')'
+	addi $s7, $s7, 1
+	
+	# Tra lai $ra de tro ve 
+	lw   $ra, 0($sp)
+	addi $sp, $sp, 4
+	jr $ra 
 
 #-----------------------------------------------------------
 #  @not_found: Khong tim thay khuon dang lenh
@@ -482,9 +553,8 @@ not_found:
 	li $v0, 4
 	la $a0, error_mess
 	syscall
+	j m_menu_start	
 	
-	j m_menu_start
-	
-
-
-
+#-----------------------------------------------------------
+#  END
+#-----------------------------------------------------------
