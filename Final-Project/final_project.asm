@@ -4,17 +4,22 @@
 #-----------------------------------------------------------
 
 .data
-	menu_mess:       .asciiz " MENU\n 1. Kiem tra cu phap lenh\n 2. Thoat \n Chon: "
-	menu_error_mess: .asciiz "Nhap sai, vui long nhap lai!\n"
-	input_mess:      .asciiz "Nhap vao lenh Mips"
+	menu_mess:       .asciiz "\n>>>>>>>>>>MENU<<<<<<<<<<\n1. Kiem tra cu phap lenh\n2. Thoat \nChon: "
+	menu_error_mess: .asciiz "\nNhap sai, vui long nhap lai!\n"
+	input_mess:      .asciiz "\nNhap vao lenh Mips: "
 	
-	opcode_mess: .asciiz "Instruc oke\n"
+	opcode_mess: 	.asciiz "Opcode: "
+	toanHang_mess: 	.asciiz "Toan hang: "
+	hopLe_mess: 	.asciiz " - hop le.\n"
+	error_mess: 	.asciiz "Lenh hop ngu khong hop le, sai khuon dang lenh !\n"
+	completed_mess: .asciiz "Lenh hop ngu chinh xac !\n"
+	
 	none_mess: .asciiz "None oke\n"
 	token_mess: .asciiz "token oke\n"
 	not_mess: .asciiz "Sai cau truc\n"
 	
 	command:  .space 100	# Luu cau lenh
-	opcode:   .space 20	# Luu ma lenh, vi du: add, and,...
+	opcode:   .space 30	# Luu ma lenh, vi du: add, and,...
 	number:   .space 30	# imm | shamt
 	ident:    .space 30	# nhan
 	token:    .space 30	# cac thanh ghi, vi du: $zero, $at,...
@@ -22,8 +27,8 @@
 	# Cau truc cua library:
 	# opcode (5 byte) - so luong operation - chu ky lenh
 	# Trong so luong operation: 1 - thanh ghi; 2 - hang so nguyen; 3 - dinh danh (ident); 0 - khong co 
-	library: .asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;"
-	charGroup: .asciiz "qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
+	library: 	.asciiz "or***1111;xor**1111;lui**1201;jr***1001;jal**3002;addi*1121;add**1111;sub**1111;ori**1121;and**1111;beq**1132;bne**1132;j****3002;nop**0001;"
+	charGroup: 	.asciiz "qwertyuiopasdfghjklmnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM_"
 	# Moi thanh ghi cach nhau 6 byte
 	tokenRegisters: .asciiz "$zero $at   $v0   $v1   $a0   $a1   $a2   $a3   $t0   $t1   $t2   $t3   $t4   $t5   $t6   $t7   $s0   $s1   $s2   $s3   $s4   $s5   $s6   $s7   $t8   $t9   $k0   $k1   $gp   $sp   $fp   $ra   $0    $1    $2    $3    $4    $5    $7    $8    $9    $10   $11   $12   $13   $14   $15   $16   $17   $18   $19   $20   $21   $22   $21   $22   $23   $24   $25   $26   $27   $28   $29   $30   $31   "
 
@@ -31,24 +36,24 @@
 
 main:
 # >>>>>>>>>> MENU <<<<<<<<<< 
-#m_menu_start:
-#	li $v0, 51
-#	la $a0, menu_mess
-#	syscall
+m_menu_start:
+	li $v0, 4
+	la $a0, menu_mess
+	syscall
 	
-#	beq $a0, 1, m_menu_end
+	# Read number input menu
+	li $v0, 5
+	syscall
 	
-	# Bang 2 hoac -2 => Ket thuc chuong trinh
-#	beq $a0, 2, end_main
-#	beq $a1, -2, end_main
+	beq $v0, 2, end_main	# 2: ket thuc
+	beq $v0, 1, m_menu_end	# 1: thuc hien kiem tra
 	
-	# Truong hop khac 1,2 se yeu cau nhap lai
-#	li $v0, 55
-#	la $a0, menu_error_mess
-#	syscall
-#	j  m_menu_start
+	li $v0, 4
+	la $a0, menu_error_mess # Nhap sai
+	syscall
 	
-#m_menu_end:
+	j m_menu_start
+m_menu_end:
 
 # >>>>>>>>>> READ INPUT <<<<<<<<<< 
 m_input:
@@ -61,7 +66,8 @@ m_check:
 	jal check
 	nop
 	
-	# j m_menu_start
+	j m_menu_start
+	
 end_main:
 	li $v0, 10
 	syscall
@@ -70,11 +76,15 @@ end_main:
 # 1. @input: Nhap vao lenh Mips tu ban phim
 #-----------------------------------------------------------
 input:
-	li $v0, 54
-	la $a0, input_mess
-	la $a1, command
-	la $a2, 100
+	li $v0, 4
+	la $a0, input_mess 
 	syscall
+	
+	li $v0, 8
+	la $a0, command
+	li $a1, 100
+	syscall
+
 	jr $ra
 
 #-----------------------------------------------------------
@@ -88,23 +98,42 @@ check:
 	addi $sp, $sp, -4
 	sw   $ra, 0($sp)
 	
-	addi $s7, $zero, 0	# Thanh ghi $s7 luu index cua command
+	addi $s7, $zero, 0		# Thanh ghi $s7 luu index cua command
 	
-	# >>>>>>>>>> START CHECK OPCODE <<<<<<<<<< 
+	# START CHECK OPCODE
 	jal check_opcode
 	nop
 	
-	# >>>>>>>>>> START CHECK OPERAND 1 <<<<<<<<<< 
-	jal check_operand_1
+	# START CHECK OPERAND 1
+	li  $s3, 5			# Vi tri operand trong Library
+	jal check_operand
 	nop
 	
-	# >>>>>>>>>> START CHECK OPERAND 2 <<<<<<<<<< 
-	jal check_operand_2
+	# START CHECK OPERAND 2		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
+	
+	la   $a0, command
+	add  $t0, $a0, $s7 		# tro toi vi tri tiep tuc cua command
+	lb   $t1, 0($t0)        
+	bne  $t1, 44, not_found		# Dau ','
+	add  $s7, $s7, 1
+	
+	li  $s3, 6			# Vi tri operand trong Library
+	jal check_operand
 	nop
 	
-	# >>>>>>>>>> START CHECK OPERAND 3 <<<<<<<<<< 
-	#jal check_operand_1
-	#nop
+	# START CHECK OPERAND 3		# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
+	la   $a0, command
+	add  $t0, $a0, $s7 		# tro toi vi tri tiep tuc cua command
+	lb   $t1, 0($t0)        
+	bne  $t1, 44, not_found		# Dau ','
+	add  $s7, $s7, 1
+	
+	li  $s3, 7			# Vi tri operand trong Library
+	jal check_operand
+	nop
+	
+	# KIEM TRA KY TU THUA
+	j check_none
 	
 	# Tra lai $ra de tro ve main
 	lw   $ra, 0($sp)
@@ -120,15 +149,14 @@ check:
 #-----------------------------------------------------------
 check_opcode:
 	
-	li $t0, 0		# i = 0
-	#add $t0, $s7, $zero	# i = index command
-	li  $s6, 0		# so luong cac ki tu cua opcode = 0
-	la  $a0, command	# Dia chi cua command
-	la  $a1, opcode		# Dia chi cua opcode
+	li $t0, 0			# i = 0
+	li  $s6, 0			# so luong cac ki tu cua opcode = 0
+	la  $a0, command		# Dia chi cua command
+	la  $a1, opcode			# Dia chi cua opcode
 	
 read_opcode:
-	add $t1, $a0, $t0	# Dich bit cua command
-	add $t2, $a1, $t0	# Dich bit cua opcode
+	add $t1, $a0, $t0		# Dich bit cua command
+	add $t2, $a1, $t0		# Dich bit cua opcode
 	
 	lb  $t3, 0($t1)
 	
@@ -142,19 +170,19 @@ read_opcode:
 	j read_opcode
 read_opcode_done:	
 	
-	addi $s6, $t0, 0	# $s6: So luong ki tu cua opcode
-	addi $s7, $t0, 1	# luu index cua command
+	addi $s6, $t0, 0		# $s6: So luong ki tu cua opcode
+	addi $s7, $t0, 1		# luu index cua command
 	
 	la $a2, library
 	li $t0, -10
 	
 check_opcode_inlib:
-	addi $t0, $t0, 10	# Buoc nhay bang 10 de nhay den tung Instruction
+	addi $t0, $t0, 10		# Buoc nhay bang 10 de nhay den tung Instruction
 	
-	li $t1, 0 		# i = 0
-	li $t2, 0		# j = 0
+	li $t1, 0 			# i = 0
+	li $t2, 0			# j = 0
 	
-	add $t1, $t1, $t0	# Cong buoc nhay
+	add $t1, $t1, $t0		# Cong buoc nhay
 	
 	compare_opcode:
 		add $t3, $a2, $t1			# t3 tro thanh vi tri tro den dau cua tung Instruction
@@ -173,120 +201,74 @@ check_opcode_inlib:
 	check_len_opcode:
 		bne $t2, $s6, check_opcode_inlib
 end_check_opcode_inlib:
+
+	add $s5, $t0, $a2				# Luu lai vi tri Instruction trong Library.
 	
+	# In thong tin ra man hinh
 	li $v0, 4
 	la $a0, opcode_mess
 	syscall
-	
-	add $s5, $t0, $a2	# Luu lai vi tri Instruction trong Library.
+	li $v0, 4
+	la $a0, opcode
+	syscall 
+	li $v0, 4
+	la $a0, hopLe_mess
+	syscall
 	
 	jr $ra 
 	
 	
 #-----------------------------------------------------------
-# 2.2 @check_operand_1: 
+# 2.2 @check_operand: 
 # a0: command
 # s7: Luu index cua command
 # s5: vi tri cua instruction trong library
 #-----------------------------------------------------------
 	
-check_operand_1:
+check_operand:
 	# Luu $ra de tro ve check_operand
 	addi $sp, $sp, -4
 	sw   $ra, 0($sp)
 
-	addi $t9, $s5, 5	# Tro toi operand_1 trong Library
-	lb $t9, 0($t9)
-	addi $t9, $t9, -48	# Char -> Number
+	add $t9, $s5, $s3			# Tro toi operand trong Library
+	lb  $t9, 0($t9)
+	addi $t9, $t9, -48			# Char -> Number
 	
-	la $a0, command
+	la  $a0, command
 	add $t0, $a0, $s7
 	
-	li $t1, 0			# i = 0
-	space_remove:			# Xoa cac khoang trang thua
+	li $t1, 0				# i = 0
+	space_remove:				# Xoa cac khoang trang thua
 		add $t2, $t0, $t1
-		lb  $t2, 0($t2)		# Lay ky tu tiep theo
+		lb  $t2, 0($t2)			# Lay ky tu tiep theo
 		bne $t2, 32, end_space_remove	# Ky tu ' ' 
-		addi $t1, $t1, 1	# i = i + 1	
+		addi $t1, $t1, 1		# i = i + 1	
 		j space_remove
 	end_space_remove:
-	add $s7, $s7, $t1
+	
+	add $s7, $s7, $t1			# Cap nhat lai index command
 		
-	li $t8, 0		# Khong co
+	li $t8, 0				# Khong co
 	beq $t8, $t9, check_none
 
-	li $t8, 1		# Thanh ghi
+	li $t8, 1				# Thanh ghi
 	beq $t8, $t9, go_register
 	go_register:
 		jal	check_register
 		nop
 	
-	#li $t8, 2		# So hang nguyen
+	#li $t8, 2				# So hang nguyen
 	
-	#li $t8, 3		# Ident
+	#li $t8, 3				# Ident
+	
 	
 	# Tra lai $ra de tro ve check_operand
 	lw   $ra, 0($sp)
 	addi $sp, $sp, 4
 	jr   $ra
 
-
 #-----------------------------------------------------------
-# 2.2 @check_operand_2: 
-# a0: command
-# s7: Luu index cua command
-# s5: vi tri cua instruction trong library
-#-----------------------------------------------------------
-check_operand_2:
-	# Luu $ra de tro ve check_operand
-	la   $a0, command
-	addi $sp, $sp, -4
-	sw   $ra, 0($sp)
-
-	add $t0, $a0, $s7 	# tro toi vi tri tiep tuc cua command
-	
-	# Neu khong co dau ',' ngan cach giua operand_1 va operand_2 => FALSE
-	lb   $t1, 0($t0)        
-	bne  $t1, 44, not_found
-	
-	add $s7, $s7, 1
-	
-	addi $t9, $s5, 5	# Tro toi operand_2 trong Library
-	lb $t9, 0($t9)
-	addi $t9, $t9, -48	# Char -> Number
-	
-	add $t0, $a0, $s7
-	li $t1, 0			# i = 0
-	space_remove_2:			# Xoa cac khoang trang thua
-		add $t2, $t0, $t1
-		lb  $t2, 0($t2)		# Lay ky tu tiep theo
-		bne $t2, 32, end_space_remove_2	# Ky tu ' ' 
-		addi $t1, $t1, 1	# i = i + 1	
-		j space_remove_2
-	end_space_remove_2:
-	add $s7, $s7, $t1
-		
-	li $t8, 0		# Khong co
-	beq $t8, $t9, check_none
-
-	li $t8, 1		# Thanh ghi
-	beq $t8, $t9, go_register_2
-	go_register_2:
-		jal	check_register
-		nop
-	
-	#li $t8, 2		# So hang nguyen
-	
-	#li $t8, 3		# Ident
-	
-
-	# Tra lai $ra de tro ve check_operand
-	lw   $ra, 0($sp)
-	addi $sp, $sp, 4
-	jr   $ra
-
-#-----------------------------------------------------------
-#  @check_none: Kiem tra xem con ky tu nao khong
+#  @check_none: Kiem tra xem con ky tu nao o cuoi khong
 #-----------------------------------------------------------
 check_none:
 	la $a0, command
@@ -301,11 +283,12 @@ check_none:
 		
 none_ok:
 	li $v0, 4
-	la $a0, none_mess
+	la $a0, completed_mess
 	syscall
+	j m_menu_start
 	
 #-----------------------------------------------------------
-#  @check_register: Kiem tra xem register co hop le hay khong
+# @check_register: Kiem tra xem register co hop le hay khong
 # a0: command (vi tri luu command)
 # a1: token (vi tri luu thanh ghi)
 # a2: tokenRegisters
@@ -316,19 +299,19 @@ check_register:
 	la $a0, command
 	la $a1, token
 	la $a2, tokenRegisters
-	add $t0, $a0, $s7	# Tro den vi tri cac instruction
+	add $t0, $a0, $s7			# Tro den vi tri cac instruction
 	
-	li $t1, 0	# i = 0
-	li $t9, 0	# index cua token
+	li $t1, 0				# i = 0
+	li $t9, 0				# index cua token
 	
 read_token_register:
-	add $t2, $t0, $t1	# command
-	add $t3, $a1, $t1	# token
+	add $t2, $t0, $t1			# command
+	add $t3, $a1, $t1			# token
 	lb $t4, 0($t2)
 		
-	beq $t4, 44, end_read_token	# Gap ky tu ' , '
-	beq $t4, 10, end_read_token	# Gap ky tu '\n'
-	beq $t4, 0, end_read_token	# Ket thuc
+	beq $t4, 44, end_read_token		# Gap ky tu ' , '
+	beq $t4, 10, end_read_token		# Gap ky tu '\n'
+	beq $t4, 0, end_read_token		# Ket thuc
 		
 	addi $t1, $t1, 1
 	beq $t4, 32, read_token_register	 # Neu gap dau ' ' thi tiep tuc 
@@ -338,16 +321,16 @@ read_token_register:
 	j read_token_register
 		
 end_read_token:
-	add $s7, $s7, $t1	# Cap nhat lai gia tri index
+	add $s7, $s7, $t1			# Cap nhat lai gia tri index
 		
 	li $t0, -6
 compare_token_register:
-	addi $t0, $t0, 6	# Buoc nhay bang 6 de nhay den tung Register
+	addi $t0, $t0, 6			# Buoc nhay bang 6 de nhay den tung Register
 	
-	li $t1, 0 		# i = 0
-	li $t2, 0		# j = 0
+	li $t1, 0 				# i = 0
+	li $t2, 0				# j = 0
 	
-	add $t1, $t1, $t0	# Cong buoc nhay
+	add $t1, $t1, $t0			# Cong buoc nhay
 	
 	compare_reg:
 		add $t3, $a2, $t1			# t3 tro thanh vi tri tro den dau cua tung Register
@@ -369,22 +352,26 @@ compare_token_register:
 end_compare_token_register:
 
 	li $v0, 4
-	la $a0, token_mess
+	la $a0, toanHang_mess
+	syscall
+	li $v0, 4
+	la $a0, token
+	syscall 
+	li $v0, 4
+	la $a0, hopLe_mess
 	syscall
 	
 	jr $ra
 
 #-----------------------------------------------------------
-#  @not_found: Khong tim thay 
+#  @not_found: Khong tim thay khuon dang lenh
 #-----------------------------------------------------------
 not_found:
-
 	li $v0, 4
-	la $a0, not_mess
+	la $a0, error_mess
 	syscall
 	
-	li $v0, 10
-	syscall
+	j m_menu_start
 	
 
 
