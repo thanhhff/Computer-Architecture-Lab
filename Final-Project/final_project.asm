@@ -88,6 +88,9 @@ input:
 # 2. @check: Kiem tra cau lenh
 # - Buoc 1: Kiem tra opcode (add, and, or,...) ten lenh
 # - Buoc 2: Kiem tra Operand lan luot cac operand (Toan hang)
+# - Giua 2 toan hang can kiem tra xem co dau ',' hay khong.
+# $s7: Luu index cua command
+# $s3: Vi tri cua tung toan hang trong Library
 #-----------------------------------------------------------
 check:
 	# Luu $ra de tro ve main
@@ -239,9 +242,10 @@ end_check_opcode_inlib:
 	
 #-----------------------------------------------------------
 # 2.2 @check_operand: 
-# a0: command
-# s7: Luu index cua command
-# s5: vi tri cua instruction trong library
+# $a0: command.
+# $s7: Luu index cua command.
+# $s5: vi tri cua instruction trong library.
+# $t9: Gia tri cua toan hang trong Library.
 #-----------------------------------------------------------
 	
 check_operand:
@@ -344,10 +348,10 @@ none_ok:
 	
 #-----------------------------------------------------------
 # @check_register: Kiem tra xem register co hop le hay khong
-# a0: command (vi tri luu command)
-# a1: token (vi tri luu thanh ghi)
-# a2: tokenRegisters
-# s7: Luu index cua command
+# $a0: command (vi tri luu command)
+# $a1: token (vi tri luu thanh ghi)
+# $a2: tokenRegisters
+# $s7: Luu index cua command
 # $t9: index cua token
 #-----------------------------------------------------------
 
@@ -457,9 +461,9 @@ on_token_number_register:
 
 #-----------------------------------------------------------
 # @check_ident: Kiem tra ident (label) HOAC number
-# a0: command (vi tri luu command)
-# a1: ident (vi tri luu ident)
-# a2: characterGroup | numberGroup
+# $a0: command (vi tri luu command)
+# $a1: ident (vi tri luu ident)
+# $a2: characterGroup | numberGroup
 # $s7: luu index cua command
 # $t9: index cua ident
 #-----------------------------------------------------------
@@ -571,7 +575,7 @@ on_number_register:
 
 #-----------------------------------------------------------
 # @check_number_register: Kiem tra number - ident
-# a0: command (vi tri luu command)
+# $a0: command (vi tri luu command)
 # $s7: luu index cua command
 # $s2: Luu kich hoat check number register
 #-----------------------------------------------------------
