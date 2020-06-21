@@ -212,7 +212,7 @@ end_check_opcode_inlib:
 
 	add $s5, $t0, $a2				# Luu lai vi tri Instruction trong Library.
 	
-	# In thong tin ra man hinh
+	# >>>>>>>>> In thong tin ra man hinh <<<<<<<<<<
 	li $v0, 4
 	la $a0, opcode_mess
 	syscall
@@ -407,7 +407,8 @@ compare_token_register:
 		bne $t2, $t9, compare_token_register	# Neu do dai khong bang nhau di den register tiep theo
 		
 end_compare_token_register:
-
+	
+	# >>>>>>>>> In thong tin ra man hinh <<<<<<<<<<
 	beq $s2, 1, on_token_number_register
 	li $v0, 4
 	la $a0, toanHang_mess
@@ -521,7 +522,8 @@ compare_ident:
 end_compare_ident:
 
 	beq $s2, 1, on_number_register
-	# In thong tin ra man hinh
+	
+	# >>>>>>>>> In thong tin ra man hinh <<<<<<<<<<
 	li $v0, 4
 	la $a0, toanHang_mess
 	syscall
